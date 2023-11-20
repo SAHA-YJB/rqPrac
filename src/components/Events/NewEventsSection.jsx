@@ -12,6 +12,13 @@ export default function NewEventsSection() {
     queryKey: ["events"],
     //프로미스를 반환하는 함수를 필요로 한다
     queryFn: fetchEvents,
+    //해당 시간 동안은 캐시된 데이터를 재사용하고 서버에 다시 요청하지 않음
+    //ex)staleTime을 5초로 설정하면, 해당 데이터를 처음 가져온 후 5초 동안은 캐시된 데이터를 사용하고,
+    //5초 후에는 데이터가 'stale' 상태가 되어 다음 데이터 요청시 서버에 다시 요청
+    //기본값 0
+    staleTime: 5000,
+    //데이터와 캐시를 얼마동안 유지할지 설정 기본값 5분
+    // gcTime: 30000,
   });
   let content;
 
