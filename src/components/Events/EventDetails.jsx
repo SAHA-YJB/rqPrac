@@ -1,12 +1,15 @@
 import { Link, Outlet, useNavigate, useParams } from "react-router-dom";
 
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
 import { deleteEvent, fetchEvent, queryClient } from "../../util/http.js";
 import Header from "../Header.jsx";
 import ErrorBlock from "../UI/ErrorBlock.jsx";
 import LoadingIndicator from "../UI/LoadingIndicator.jsx";
+import Modal from "../UI/Modal.jsx";
 
 export default function EventDetails() {
+  const [isDeleting, setIsDeleting] = useState(false);
   const navigate = useNavigate();
   const { id } = useParams();
 
@@ -15,7 +18,12 @@ export default function EventDetails() {
     queryFn: ({ signal }) => fetchEvent({ signal, id }),
   });
 
-  const { mutate } = useMutation({
+  const {
+    mutate,
+    isPending: isPendingDeletion,
+    isError: isErrorDeletiong,
+    error: deleteError,
+  } = useMutation({
     mutationFn: deleteEvent,
     onSuccess: () => {
       //exact: true를 사용하면 정확히 일치하는 쿼리키만 무효화
@@ -32,10 +40,14 @@ export default function EventDetails() {
     },
   });
 
-  const deleteHandler = (id) => {
-    if (confirm("삭제하시겠습니까?")) {
-      mutate({ id });
-    }
+  const startDeleteHandler = () => {
+    setIsDeleting(true);
+  };
+  const stopDeleteHandler = () => {
+    setIsDeleting(false);
+  };
+  const deleteHandler = () => {
+    mutate({ id });
   };
 
   let content;
@@ -65,7 +77,7 @@ export default function EventDetails() {
         <header>
           <h1>{data?.title}</h1>
           <nav>
-            <button onClick={() => deleteHandler(id)}>Delete</button>
+            <button onClick={startDeleteHandler}>Delete</button>
             <Link to="edit">Edit</Link>
           </nav>
         </header>
@@ -86,6 +98,32 @@ export default function EventDetails() {
   }
   return (
     <>
+      {isDeleting && (
+        <Modal onClose={stopDeleteHandler}>
+          <h2>정말로 삭제하시겠습니까?</h2>
+          <p>이 작업은 되돌릴 수 없습니다.</p>
+          <div className="form-actions">
+            {isPendingDeletion && "삭제 중..."}
+            {!isPendingDeletion && (
+              <>
+                <button onClick={stopDeleteHandler} className="button-text">
+                  취소
+                </button>
+                <button onClick={deleteHandler} className="button">
+                  삭제
+                </button>
+              </>
+            )}
+          </div>
+          {isErrorDeletiong && (
+            <ErrorBlock
+              title="이벤트 삭제 실패"
+              message={deleteError.info?.message || "삭제에 실패했습니다."}
+            />
+          )}
+        </Modal>
+      )}
+
       <Outlet />
       <Header>
         <Link to="/events" className="nav-item">
