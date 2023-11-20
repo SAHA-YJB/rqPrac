@@ -1,8 +1,15 @@
-import { useState } from 'react';
+import { useState } from "react";
 
-import ImagePicker from '../ImagePicker.jsx';
+import { useQuery } from "@tanstack/react-query";
+import { fetchSelectableImages } from "../../util/http.js";
+import ImagePicker from "../ImagePicker.jsx";
+import ErrorBlock from "../UI/ErrorBlock.jsx";
 
 export default function EventForm({ inputData, onSubmit, children }) {
+  const { data, isError, isPending, error } = useQuery({
+    queryKey: ["events-images"],
+    queryFn: fetchSelectableImages,
+  });
   const [selectedImage, setSelectedImage] = useState(inputData?.image);
 
   function handleSelectImage(image) {
@@ -26,24 +33,32 @@ export default function EventForm({ inputData, onSubmit, children }) {
           type="text"
           id="title"
           name="title"
-          defaultValue={inputData?.title ?? ''}
+          defaultValue={inputData?.title ?? ""}
         />
       </p>
 
-      <div className="control">
-        <ImagePicker
-          images={[]}
-          onSelect={handleSelectImage}
-          selectedImage={selectedImage}
+      {isPending && "이미지 기다리는 중!"}
+      {isError && (
+        <ErrorBlock
+          title="이미지 가져오기를 실패하였습니다."
+          message={error.info?.message || "다시 한번 시도해주세요!"}
         />
-      </div>
-
+      )}
+      {data && (
+        <div className="control">
+          <ImagePicker
+            images={data}
+            onSelect={handleSelectImage}
+            selectedImage={selectedImage}
+          />
+        </div>
+      )}
       <p className="control">
         <label htmlFor="description">Description</label>
         <textarea
           id="description"
           name="description"
-          defaultValue={inputData?.description ?? ''}
+          defaultValue={inputData?.description ?? ""}
         />
       </p>
 
@@ -54,7 +69,7 @@ export default function EventForm({ inputData, onSubmit, children }) {
             type="date"
             id="date"
             name="date"
-            defaultValue={inputData?.date ?? ''}
+            defaultValue={inputData?.date ?? ""}
           />
         </p>
 
@@ -64,7 +79,7 @@ export default function EventForm({ inputData, onSubmit, children }) {
             type="time"
             id="time"
             name="time"
-            defaultValue={inputData?.time ?? ''}
+            defaultValue={inputData?.time ?? ""}
           />
         </p>
       </div>
@@ -75,7 +90,7 @@ export default function EventForm({ inputData, onSubmit, children }) {
           type="text"
           id="location"
           name="location"
-          defaultValue={inputData?.location ?? ''}
+          defaultValue={inputData?.location ?? ""}
         />
       </p>
 
