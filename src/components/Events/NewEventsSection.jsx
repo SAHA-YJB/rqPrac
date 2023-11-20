@@ -9,9 +9,9 @@ export default function NewEventsSection() {
     //get http요청에는 쿼리키가 항상 있다.
     //쿼리키를 이용해 생성도힌 데이터를 캐시처리
     //키는 배열
-    queryKey: ["events"],
+    queryKey: ["events", { max: 3 }],
     //프로미스를 반환하는 함수를 필요로 한다
-    queryFn: fetchEvents,
+    queryFn: ({ signal, queryKey }) => fetchEvents({ signal, ...queryKey[1] }),
     //해당 시간 동안은 캐시된 데이터를 재사용하고 서버에 다시 요청하지 않음
     //ex)staleTime을 5초로 설정하면, 해당 데이터를 처음 가져온 후 5초 동안은 캐시된 데이터를 사용하고,
     //5초 후에는 데이터가 'stale' 상태가 되어 다음 데이터 요청시 서버에 다시 요청
